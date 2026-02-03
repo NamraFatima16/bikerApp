@@ -1,8 +1,16 @@
-# User Flow Documentation - RideGuard
+# 🛤️ User Flow Documentation
 
-## 1. Comprehensive User Flow Diagram
-This diagram describe how the riders will move through the obsidian app to complete key tasks such as planning routes, recording rides , managing bikes, handling emergencies and reviewing ride history.
+## 📖 Overview
+The following diagrams describe how riders move through the ObsidianRoutes app to complete key workflows, such as planning routes, recording rides, managing bikes, handling emergencies, and reviewing ride history.
 
+### Diagram Legend
+| Role | Colour |
+| :--- | :--- |
+| *Entry points / Neutral states* | <svg width="4.5em" height="1.5em" style="vertical-align:middle"><rect width="100%" height="100%" rx="6" fill="#3d96d8" stroke="#000"/></svg> |
+| *Success / Completion* | <svg width="4.5em" height="1.5em" style="vertical-align:middle"><rect width="100%" height="100%" rx="6" fill="#53ad2c" stroke="#000"/></svg> |
+| *Warnings / Non-critical issues* | <svg width="4.5em" height="1.5em" style="vertical-align:middle"><rect width="100%" height="100%" rx="6" fill="#a27a037b" stroke="#000"/></svg> |
+| *Errors / Critical failures* | <svg width="4.5em" height="1.5em" style="vertical-align:middle"><rect width="100%" height="100%" rx="6" fill="#f44336" stroke="#000"/></svg> |
+---
 ## 1. First Time User  
 
 ### Happy Path
@@ -536,13 +544,3 @@ style U fill:#a27a037b
 style V fill:#a27a037b
 style W fill:#a27a037b
 ```
-
-
-### Color 
-
-
-- #3d96d8**Light Blue** - Entry points and neutral states
-- #53ad2c**Green** - Success states and completions
-- #a27a037b **Brown** - Warnings and non-critical issues
-- #f44336**Red** - Errors, failures, and critical issues
-
