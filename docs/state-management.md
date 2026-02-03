@@ -1,16 +1,4 @@
-# State Management Strategy 
-
-## Overview 
-this document outlines the statemanagement architecure for obsidian routes it will explain what data lives where , why and how different partts of the application share information.
-state management is critical for a GPS tracking app where location data, ride status and iser preference must be accessible across multiple screen.
-
-## 1. Global State(Zustand)
-I will be using a tool called Zustand to keep track of the really importand stuff across the app. it is extremly quick and works great with React Native 
-
-### what zustand stores
-
-1. **User Profile**
-* who you are # 🧠 State Management Strategy 
+### 🧠 State Management Strategy 
 
 State management is critical for ObsidianRoutes, as location data, ride status, and user preferences must be accessible across multiple screens. This architecture defines what data lives where and how the application shares information.
 
