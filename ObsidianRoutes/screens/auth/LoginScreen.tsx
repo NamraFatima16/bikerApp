@@ -11,6 +11,7 @@ export default function Login ({ navigation }: any){
         setLoading(true);
         const { error } = await supabase.auth.signInWithPassword({ email, password});
         if (error) Alert.alert('Error', error.message);
+        else navigation.navigate('App');
         setLoading(false);
     };
 
