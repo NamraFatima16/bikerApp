@@ -22,7 +22,9 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.biker16.ObsidianRoutes"
+      "package": "com.biker16.ObsidianRoutes",
+      "usesCleartextTraffic": true
+      
     },
     "web": {
       "favicon": "./assets/favicon.png"
