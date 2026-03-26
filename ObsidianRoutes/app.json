@@ -24,7 +24,6 @@
       "predictiveBackGestureEnabled": false,
       "package": "com.biker16.ObsidianRoutes",
       "usesCleartextTraffic": true
-      
     },
     "web": {
       "favicon": "./assets/favicon.png"
