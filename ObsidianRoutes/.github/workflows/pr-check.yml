@@ -1,36 +1,41 @@
-name: PR Quality Check 
+name: PR Quality Check
 
-on: 
+on:
   pull_request:
     branches:
-        - master
+      - master
 
-jobs: 
-    quality:
-        runs-on: ubuntu-latest 
-        
-        steps:
-          - name: Checkout code
-            uses: actions/checkout@v4 
+jobs:
+  quality:
+    runs-on: ubuntu-latest
 
-          - name: Setup Node.js 
-            uses: actions/setup-node@v4
-            with: 
-                node-version: '20'
-                cache: 'npm'
-        
-          - name: Install dependencies
-            run: npm ci 
-            
-          - name: Run ESLint
-            run: npx eslint . --ext .ts,.tsx
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-          - name: Run TypeScript type check
-            run: npx tsc --noEmit
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: ObsidianRoutes/package-lock.json
 
-          - name: Run Prettier check
-            run: npx prettier --check .
-        
-          - name: Run Jest tests
-            run: npx jest --passWithNoTests 
+      - name: Install dependencies
+        working-directory: ObsidianRoutes
+        run: npm ci
 
+      - name: Run ESLint
+        working-directory: ObsidianRoutes
+        run: npx eslint . --ext .ts,.tsx
+
+      - name: Run TypeScript type check
+        working-directory: ObsidianRoutes
+        run: npx tsc --noEmit
+
+      - name: Run Prettier check
+        working-directory: ObsidianRoutes
+        run: npx prettier --check .
+
+      - name: Run Jest tests
+        working-directory: ObsidianRoutes
+        run: npx jest --passWithNoTests
