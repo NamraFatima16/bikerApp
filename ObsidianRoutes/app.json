@@ -32,6 +32,16 @@
       "eas": {
         "projectId": "bb9a9d74-4782-4f16-a323-e5c7356bb5ee"
       }
-    }
+    },
+    "plugins": [
+      [
+        "@sentry/react-native/expo",
+        {
+          "url": "https://sentry.io/",
+          "project": "obsidianroutes",
+          "organization": "setu-kb"
+        }
+      ]
+    ]
   }
 }
