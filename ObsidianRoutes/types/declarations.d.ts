@@ -1,1 +1,1 @@
-declare module '@rnmapbox/maps';
+declare module "@rnmapbox/maps";
