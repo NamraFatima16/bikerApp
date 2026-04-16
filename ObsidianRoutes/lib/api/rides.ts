@@ -25,6 +25,13 @@ export type CreateRideInput = {
   avg_speed?: number;
 };
 
+export type RideListFilters = {
+  filterType?: "all" | "month" | "year" | "bike";
+  month?: string; // 'YYYY-MM'
+  year?: string; // 'YYYY'
+  bikeId?: string;
+};
+
 export async function saveRide(input: CreateRideInput): Promise<Ride> {
   const {
     data: { user },
@@ -48,4 +55,22 @@ export async function getRides(): Promise<Ride[]> {
 
   if (error) throw error;
   return data || [];
+}
+
+export async function getRideById(id: string): Promise<Ride | null> {
+  const { data, error } = await supabase
+    .from("ride_history")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+  return data || null;
+}
+
+export async function deleteRide(id: string): Promise<boolean> {
+  const { error } = await supabase.from("ride_history").delete().eq("id", id);
+
+  if (error) throw error;
+  return true;
 }
