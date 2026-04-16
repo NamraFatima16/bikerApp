@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import MapboxGL from "@rnmapbox/maps";
 import { getDirections } from "../../lib/api/directions";
+import { getWeatherAlongRoute, WeatherData } from "../../lib/api/weather";
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 
@@ -22,6 +23,9 @@ export default function PlannerScreen() {
   const [distance, setDistance] = useState<number | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [weatherPoints, setWeatherPoints] = useState<
+    { coordinate: number[]; weather: WeatherData }[]
+  >([]);
 
   const handleGetRoute = async () => {
     if (!startLng || !startLat || !endLng || !endLat) {
@@ -39,6 +43,8 @@ export default function PlannerScreen() {
       setRouteCoords(result.coordinates);
       setDistance(result.distance);
       setDuration(result.duration);
+      const weather = await getWeatherAlongRoute(result.coordinates);
+      setWeatherPoints(weather);
     } catch (error) {
       Alert.alert("Error", "Could not get directions");
     } finally {
@@ -129,10 +135,24 @@ export default function PlannerScreen() {
             />
           </MapboxGL.ShapeSource>
         )}
+        {weatherPoints.map((point, index) => (
+          <MapboxGL.PointAnnotation
+            key={`weather-${index}`}
+            id={`weather-${index}`}
+            coordinate={point.coordinate as [number, number]}
+          >
+            <View style={styles.weatherMarker}>
+              <Text style={styles.weatherTemp}>
+                {Math.round(point.weather.temperature)}°
+              </Text>
+            </View>
+          </MapboxGL.PointAnnotation>
+        ))}
       </MapboxGL.MapView>
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: { flex: 1 },
   form: { padding: 16, backgroundColor: "#fff" },
@@ -145,6 +165,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     color: "#000",
+  },
+  weatherMarker: {
+    backgroundColor: "#000",
+    borderRadius: 12,
+    padding: 4,
+    minWidth: 36,
+    alignItems: "center",
+  },
+  weatherTemp: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
   },
   button: {
     backgroundColor: "#000",
