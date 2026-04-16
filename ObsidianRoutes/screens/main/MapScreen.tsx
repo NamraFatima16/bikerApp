@@ -137,14 +137,17 @@ export default function MapScreen() {
         visible={modalVisible}
         onClose={(created?: boolean) => {
           setModalVisible(false);
-          if (created) Alert.alert('Incident logged');
+          if (created) Alert.alert("Incident logged");
         }}
         latitude={currentLocation?.latitude}
         longitude={currentLocation?.longitude}
       />
 
       {isRiding && (
-        <TouchableOpacity style={styles.logBtn} onPress={() => setModalVisible(true)}>
+        <TouchableOpacity
+          style={styles.logBtn}
+          onPress={() => setModalVisible(true)}
+        >
           <Text style={styles.logBtnText}>Log Incident</Text>
         </TouchableOpacity>
       )}
@@ -192,4 +195,14 @@ const styles = StyleSheet.create({
   startBtn: { backgroundColor: "#000" },
   stopBtn: { backgroundColor: "#ff3b30" },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
+  logBtn: {
+    position: "absolute",
+    bottom: 80,
+    right: 16,
+    backgroundColor: "#8c1717",
+    padding: 12,
+    borderRadius: 8,
+    zIndex: 10,
+  },
+  logBtnText: { color: "#fff", fontWeight: "bold", fontSize: 14 },
 });
