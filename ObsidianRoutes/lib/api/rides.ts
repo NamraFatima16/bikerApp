@@ -69,12 +69,8 @@ export async function getRideById(id: string): Promise<Ride | null> {
 }
 
 export async function deleteRide(id: string): Promise<boolean> {
-  const { error } = await supabase
-    .from("ride_history")
-    .delete()
-    .eq("id", id);
+  const { error } = await supabase.from("ride_history").delete().eq("id", id);
 
   if (error) throw error;
   return true;
 }
-
