@@ -7,6 +7,7 @@ import {
   LocationPoint,
 } from "../../lib/api/location";
 import * as Location from "expo-location";
+import { saveRide } from "../../lib/api/rides";
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 
@@ -52,12 +53,23 @@ export default function MapScreen() {
       setRouteCoords((prev) => [...prev, newCoord]);
     });
   };
-
-  const stopRide = () => {
+  const stopRide = async () => {
     setIsRiding(false);
     watchRef.current?.remove();
     if (timerRef.current) clearInterval(timerRef.current);
-    Alert.alert("Ride Complete", `Distance: ${distance.toFixed(1)} km`);
+
+    try {
+      await saveRide({
+        start_time: new Date(Date.now() - elapsedTime * 1000).toISOString(),
+        end_time: new Date().toISOString(),
+        distance: distance,
+        duration: elapsedTime,
+        route_coordinates: routeCoords,
+      });
+      Alert.alert("Ride Saved", `Distance: ${distance.toFixed(1)} km`);
+    } catch (error) {
+      Alert.alert("Ride Complete", `Distance: ${distance.toFixed(1)} km`);
+    }
   };
 
   const formatTime = (seconds: number) => {
