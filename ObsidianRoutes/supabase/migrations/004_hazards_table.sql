@@ -45,14 +45,11 @@ FOR EACH ROW EXECUTE FUNCTION set_hazard_location_from_latlon();
 -- Row Level Security
 ALTER TABLE hazards ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY IF NOT EXISTS "Users can view hazards" ON hazards
+CREATE POLICY "Users can view hazards" ON hazards
   FOR SELECT USING (true);
 
-CREATE POLICY IF NOT EXISTS "Users can insert hazards" ON hazards
+CREATE POLICY "Users can insert hazards" ON hazards
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- Allow authenticated users to upvote (UPDATE). Restricting column-level updates to upvotes should be enforced in API layer for now.
-CREATE POLICY IF NOT EXISTS "Users can upvote hazards" ON hazards
+CREATE POLICY "Users can upvote hazards" ON hazards
   FOR UPDATE USING (auth.uid() IS NOT NULL);
-
--- Note: Further restrictive policies (e.g., preventing edits to other fields) can be added later.
