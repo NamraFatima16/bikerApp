@@ -8,6 +8,7 @@ import {
 } from "../../lib/api/location";
 import * as Location from "expo-location";
 import { saveRide } from "../../lib/api/rides";
+import IncidentLogModal from "./IncidentLogModal";
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 
@@ -20,6 +21,7 @@ export default function MapScreen() {
   const [distance, setDistance] = useState(0);
   const [speed, setSpeed] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [modalVisible, setModalVisible] = useState(false);
   const watchRef = useRef<Location.LocationSubscription | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastCoordRef = useRef<number[] | null>(null);
@@ -130,6 +132,22 @@ export default function MapScreen() {
           <Text style={styles.statLabel}>time</Text>
         </View>
       </View>
+
+      <IncidentLogModal
+        visible={modalVisible}
+        onClose={(created?: boolean) => {
+          setModalVisible(false);
+          if (created) Alert.alert('Incident logged');
+        }}
+        latitude={currentLocation?.latitude}
+        longitude={currentLocation?.longitude}
+      />
+
+      {isRiding && (
+        <TouchableOpacity style={styles.logBtn} onPress={() => setModalVisible(true)}>
+          <Text style={styles.logBtnText}>Log Incident</Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity
         style={[styles.button, isRiding ? styles.stopBtn : styles.startBtn]}
