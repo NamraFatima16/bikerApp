@@ -28,11 +28,13 @@ async function searchPlaces(query: string): Promise<Suggestion[]> {
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&country=IE,GB&limit=5`;
   const response = await fetch(url);
   const data = await response.json();
-  return (data.features || []).map((f: any) => ({
-    id: f.id,
-    place_name: f.place_name,
-    center: f.center,
-  }));
+  return (data.features || []).map(
+    (f: { id: string; place_name: string; center: [number, number] }) => ({
+      id: f.id,
+      place_name: f.place_name,
+      center: f.center,
+    }),
+  );
 }
 
 export default function PlannerScreen() {
@@ -46,7 +48,7 @@ export default function PlannerScreen() {
   const [distance, setDistance] = useState<number | null>(null);
   const [duration, setDuration] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
-  const [weatherPoints, setWeatherPoints] = useState
+  const [weatherPoints, setWeatherPoints] = useState<
     { coordinate: number[]; weather: WeatherData }[]
   >([]);
 
@@ -182,10 +184,7 @@ export default function PlannerScreen() {
       </View>
 
       <MapboxGL.MapView style={styles.map}>
-        <MapboxGL.Camera
-          zoomLevel={7}
-          centerCoordinate={[-8.24389, 53.0]}
-        />
+        <MapboxGL.Camera zoomLevel={7} centerCoordinate={[-8.24389, 53.0]} />
         {routeCoords.length > 0 && (
           <MapboxGL.ShapeSource
             id="routeSource"
