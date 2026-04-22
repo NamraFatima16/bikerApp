@@ -7,9 +7,13 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  Modal,
+  TextInput,
+  Switch,
 } from "react-native";
 import {
   getEmergencyContacts,
+  createEmergencyContact,
   deleteEmergencyContact,
   sendSOS,
   EmergencyContact,
@@ -20,6 +24,12 @@ export default function EmergencyScreen() {
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [relationship, setRelationship] = useState("");
+  const [isPrimary, setIsPrimary] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     loadContacts();
@@ -37,6 +47,13 @@ export default function EmergencyScreen() {
   };
 
   const handleSOS = async () => {
+    if (contacts.length === 0) {
+      Alert.alert(
+        "No Contacts",
+        "Please add at least one emergency contact before sending SOS.",
+      );
+      return;
+    }
     Alert.alert(
       "Send SOS",
       "This will send your GPS location to all your emergency contacts. Continue?",
@@ -76,6 +93,32 @@ export default function EmergencyScreen() {
     );
   };
 
+  const handleAddContact = async () => {
+    if (!name || !phone) {
+      Alert.alert("Error", "Name and phone number are required");
+      return;
+    }
+    setSaving(true);
+    try {
+      await createEmergencyContact({
+        name,
+        phone,
+        relationship: relationship || undefined,
+        is_primary: isPrimary,
+      });
+      setModalVisible(false);
+      setName("");
+      setPhone("");
+      setRelationship("");
+      setIsPrimary(false);
+      loadContacts();
+    } catch (error) {
+      Alert.alert("Error", "Failed to add contact");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleDelete = (id: string) => {
     Alert.alert("Delete Contact", "Are you sure?", [
       { text: "Cancel", style: "cancel" },
@@ -113,10 +156,20 @@ export default function EmergencyScreen() {
         )}
       </TouchableOpacity>
 
-      <Text style={styles.sectionTitle}>Emergency Contacts</Text>
+      <View style={styles.headerRow}>
+        <Text style={styles.sectionTitle}>Emergency Contacts</Text>
+        <TouchableOpacity
+          style={styles.addBtn}
+          onPress={() => setModalVisible(true)}
+        >
+          <Text style={styles.addBtnText}>+ Add</Text>
+        </TouchableOpacity>
+      </View>
 
       {contacts.length === 0 ? (
-        <Text style={styles.empty}>No emergency contacts added yet.</Text>
+        <Text style={styles.empty}>
+          No emergency contacts added yet. Add one so SOS can reach someone.
+        </Text>
       ) : (
         <FlatList
           data={contacts}
@@ -144,6 +197,56 @@ export default function EmergencyScreen() {
           )}
         />
       )}
+
+      <Modal visible={modalVisible} animationType="slide">
+        <View style={styles.modal}>
+          <Text style={styles.modalTitle}>Add Emergency Contact</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Full Name *"
+            placeholderTextColor="#999"
+            value={name}
+            onChangeText={setName}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Phone Number *"
+            placeholderTextColor="#999"
+            value={phone}
+            onChangeText={setPhone}
+            keyboardType="phone-pad"
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Relationship (e.g. Partner, Parent)"
+            placeholderTextColor="#999"
+            value={relationship}
+            onChangeText={setRelationship}
+          />
+          <View style={styles.switchRow}>
+            <Text style={styles.switchLabel}>Primary Contact</Text>
+            <Switch
+              value={isPrimary}
+              onValueChange={setIsPrimary}
+              trackColor={{ true: "#cc0000" }}
+            />
+          </View>
+          <TouchableOpacity
+            style={styles.saveBtn}
+            onPress={handleAddContact}
+            disabled={saving}
+          >
+            {saving ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.saveBtnText}>Save Contact</Text>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <Text style={styles.cancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -166,26 +269,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 6,
   },
-  sosText: {
-    color: "#fff",
-    fontSize: 48,
-    fontWeight: "bold",
-  },
-  sosSubText: {
-    color: "#fff",
-    fontSize: 12,
-    marginTop: 4,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
+  sosText: { color: "#fff", fontSize: 48, fontWeight: "bold" },
+  sosSubText: { color: "#fff", fontSize: 12, marginTop: 4 },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
-  empty: {
-    textAlign: "center",
-    color: "#666",
-    marginTop: 16,
+  sectionTitle: { fontSize: 18, fontWeight: "bold" },
+  addBtn: {
+    backgroundColor: "#000",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
   },
+  addBtnText: { color: "#fff", fontWeight: "bold" },
+  empty: { textAlign: "center", color: "#666", marginTop: 16 },
   contactCard: {
     backgroundColor: "#fff",
     padding: 16,
@@ -197,25 +297,46 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
   },
-  contactName: {
-    fontSize: 16,
-    fontWeight: "bold",
+  contactName: { fontSize: 16, fontWeight: "bold" },
+  primaryBadge: { color: "#cc0000", fontSize: 12, fontWeight: "bold" },
+  contactPhone: { color: "#666", marginTop: 2 },
+  contactRelationship: { color: "#999", fontSize: 12, marginTop: 2 },
+  deleteBtn: { color: "red" },
+  modal: {
+    flex: 1,
+    padding: 24,
+    backgroundColor: "#f0f0f0",
+    justifyContent: "center",
   },
-  primaryBadge: {
-    color: "#cc0000",
-    fontSize: 12,
-    fontWeight: "bold",
+  modalTitle: { fontSize: 24, fontWeight: "bold", marginBottom: 24 },
+  input: {
+    borderWidth: 1,
+    borderColor: "#999",
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 16,
+    backgroundColor: "#fff",
+    color: "#000",
   },
-  contactPhone: {
-    color: "#666",
-    marginTop: 2,
+  switchRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 24,
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
   },
-  contactRelationship: {
-    color: "#999",
-    fontSize: 12,
-    marginTop: 2,
+  switchLabel: { fontSize: 16 },
+  saveBtn: {
+    backgroundColor: "#000",
+    padding: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 16,
   },
-  deleteBtn: {
-    color: "red",
-  },
+  saveBtnText: { color: "#fff", fontWeight: "bold" },
+  cancelText: { textAlign: "center", color: "#666" },
 });
