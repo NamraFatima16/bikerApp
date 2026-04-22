@@ -12,6 +12,24 @@ import IncidentLogModal from "./IncidentLogModal";
 
 MapboxGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN || "");
 
+function getDistanceKm(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number,
+): number {
+  const R = 6371;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
 export default function MapScreen() {
   const [isRiding, setIsRiding] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<LocationPoint | null>(
@@ -52,9 +70,23 @@ export default function MapScreen() {
       setCurrentLocation(point);
       setSpeed(point.speed ? Math.round(point.speed * 3.6 * 10) / 10 : 0);
       const newCoord = [point.longitude, point.latitude];
-      setRouteCoords((prev) => [...prev, newCoord]);
+
+      setRouteCoords((prev) => {
+        if (prev.length > 0) {
+          const last = prev[prev.length - 1];
+          const d = getDistanceKm(
+            last[1],
+            last[0],
+            point.latitude,
+            point.longitude,
+          );
+          setDistance((prevDist) => prevDist + d);
+        }
+        return [...prev, newCoord];
+      });
     });
   };
+
   const stopRide = async () => {
     setIsRiding(false);
     watchRef.current?.remove();
