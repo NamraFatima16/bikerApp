@@ -1,4 +1,3 @@
-SELECT auth.uid();
 
 CREATE TABLE bikes (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
