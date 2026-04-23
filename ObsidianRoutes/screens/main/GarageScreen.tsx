@@ -10,18 +10,25 @@ import {
   Alert,
   ActivityIndicator,
 } from "react-native";
-
-import { getBikes, createBike, deleteBike, Bike } from "../../lib/api/bikes";
+import {
+  getBikes,
+  createBike,
+  updateBike,
+  deleteBike,
+  Bike,
+} from "../../lib/api/bikes";
 
 export default function GarageScreen() {
   const [bikes, setBikes] = useState<Bike[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
+  const [editingBike, setEditingBike] = useState<Bike | null>(null);
   const [make, setMake] = useState("");
   const [model, setModel] = useState("");
   const [year, setYear] = useState("");
   const [engineSize, setEngineSize] = useState("");
   const [licensePlate, setLicensePlate] = useState("");
+  const [odometer, setOdometer] = useState("");
 
   useEffect(() => {
     loadBikes();
@@ -38,41 +45,73 @@ export default function GarageScreen() {
     }
   };
 
-  const handleAddBike = async () => {
+  const openAddModal = () => {
+    setEditingBike(null);
+    setMake("");
+    setModel("");
+    setYear("");
+    setEngineSize("");
+    setLicensePlate("");
+    setOdometer("");
+    setModalVisible(true);
+  };
+
+  const openEditModal = (bike: Bike) => {
+    setEditingBike(bike);
+    setMake(bike.make);
+    setModel(bike.model);
+    setYear(bike.year.toString());
+    setEngineSize(bike.engine_size?.toString() || "");
+    setLicensePlate(bike.license_plate || "");
+    setOdometer(bike.odometer.toString());
+    setModalVisible(true);
+  };
+
+  const handleSave = async () => {
     if (!make || !model || !year) {
       Alert.alert("Error", "Make, model and year are required");
       return;
     }
     try {
-      await createBike({
-        make,
-        model,
-        year: parseInt(year),
-        engine_size: engineSize ? parseInt(engineSize) : undefined,
-        license_plate: licensePlate || undefined,
-        odometer: 0,
-      });
+      if (editingBike) {
+        await updateBike(editingBike.id, {
+          make,
+          model,
+          year: parseInt(year),
+          engine_size: engineSize ? parseInt(engineSize) : undefined,
+          license_plate: licensePlate || undefined,
+          odometer: odometer ? parseInt(odometer) : 0,
+        });
+      } else {
+        await createBike({
+          make,
+          model,
+          year: parseInt(year),
+          engine_size: engineSize ? parseInt(engineSize) : undefined,
+          license_plate: licensePlate || undefined,
+          odometer: odometer ? parseInt(odometer) : 0,
+        });
+      }
       setModalVisible(false);
-      setMake("");
-      setModel("");
-      setYear("");
-      setEngineSize("");
-      setLicensePlate("");
       loadBikes();
     } catch (error) {
-      Alert.alert("Error", "Failed to add bike");
+      Alert.alert("Error", "Failed to save bike");
     }
   };
+
   const handleDeleteBike = (id: string) => {
     Alert.alert("Delete Bike", "Are you sure?", [
-      { text: "Cacel", style: "cancel" },
-
+      { text: "Cancel", style: "cancel" },
       {
         text: "Delete",
         style: "destructive",
         onPress: async () => {
-          await deleteBike(id);
-          loadBikes();
+          try {
+            await deleteBike(id);
+            loadBikes();
+          } catch (error) {
+            Alert.alert("Error", "Failed to delete bike");
+          }
         },
       },
     ]);
@@ -88,7 +127,7 @@ export default function GarageScreen() {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.bikeCard}>
-            <View>
+            <View style={styles.bikeInfo}>
               <Text style={styles.bikeName}>
                 {item.year} {item.make} {item.model}
               </Text>
@@ -97,29 +136,41 @@ export default function GarageScreen() {
                   Plate: {item.license_plate}
                 </Text>
               )}
+              {item.engine_size && (
+                <Text style={styles.bikeDetail}>
+                  Engine: {item.engine_size}cc
+                </Text>
+              )}
               <Text style={styles.bikeDetail}>
                 Odometer: {item.odometer} km
               </Text>
             </View>
-            <TouchableOpacity onPress={() => handleDeleteBike(item.id)}>
-              <Text style={styles.deleteBtn}>Delete</Text>
-            </TouchableOpacity>
+            <View style={styles.bikeActions}>
+              <TouchableOpacity
+                style={styles.editBtn}
+                onPress={() => openEditModal(item)}
+              >
+                <Text style={styles.editBtnText}>Edit</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDeleteBike(item.id)}>
+                <Text style={styles.deleteBtn}>Delete</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         )}
         ListEmptyComponent={
           <Text style={styles.empty}>No bikes yet. Add one!</Text>
         }
       />
-      <TouchableOpacity
-        style={styles.addBtn}
-        onPress={() => setModalVisible(true)}
-      >
+      <TouchableOpacity style={styles.addBtn} onPress={openAddModal}>
         <Text style={styles.addBtnText}>+ Add Bike</Text>
       </TouchableOpacity>
 
       <Modal visible={modalVisible} animationType="slide">
         <View style={styles.modal}>
-          <Text style={styles.title}>Add Bike</Text>
+          <Text style={styles.title}>
+            {editingBike ? "Edit Bike" : "Add Bike"}
+          </Text>
           <TextInput
             style={styles.input}
             placeholder="Make *"
@@ -159,13 +210,16 @@ export default function GarageScreen() {
           />
           <TextInput
             style={styles.input}
-            placeholder="Make *"
+            placeholder="Odometer (km)"
             placeholderTextColor="#999"
-            value={make}
-            onChangeText={setMake}
+            value={odometer}
+            onChangeText={setOdometer}
+            keyboardType="numeric"
           />
-          <TouchableOpacity style={styles.addBtn} onPress={handleAddBike}>
-            <Text style={styles.addBtnText}>Save</Text>
+          <TouchableOpacity style={styles.addBtn} onPress={handleSave}>
+            <Text style={styles.addBtnText}>
+              {editingBike ? "Save Changes" : "Add Bike"}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setModalVisible(false)}>
             <Text style={styles.cancel}>Cancel</Text>
@@ -191,9 +245,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ddd",
   },
+  bikeInfo: { flex: 1 },
+  bikeActions: { alignItems: "flex-end", gap: 8 },
   bikeName: { fontSize: 16, fontWeight: "bold" },
-  bikeDetail: { fontSize: 14, color: "#666" },
-  deleteBtn: { color: "red" },
+  bikeDetail: { fontSize: 14, color: "#666", marginTop: 2 },
+  editBtn: {
+    backgroundColor: "#000",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  editBtnText: { color: "#fff", fontSize: 12, fontWeight: "bold" },
+  deleteBtn: { color: "red", fontSize: 12 },
   empty: { textAlign: "center", color: "#666", marginTop: 32 },
   addBtn: {
     backgroundColor: "#000",
