@@ -6,87 +6,182 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from "react-native";
 import { supabase } from "../../lib/supabase";
 
-export default function Login({ navigation }: any) {
+export default function LoginScreen({ navigation }: any) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter your email and password");
+      return;
+    }
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    if (error) Alert.alert("Error", error.message);
-    else navigation.navigate("App");
+    if (error) Alert.alert("Login Failed", error.message);
     setLoading(false);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Obsidian Routes</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="#999"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#999"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-      />
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleLogin}
-        disabled={loading}
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={styles.buttonText}>
-          {loading ? "Logging in ..." : "Login"}
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => navigation.navigate("Signup")}>
-        <Text style={styles.link}> Dont have an account? Sign up</Text>
-      </TouchableOpacity>
-    </View>
+        <View style={styles.logoContainer}>
+          <Image
+            source={require("../../assets/AppImage.jpg")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+          <Text style={styles.appName}>ObsidianRoutes</Text>
+          <Text style={styles.tagline}>Ride smarter. Ride safer.</Text>
+        </View>
+
+        <View style={styles.form}>
+          <Text style={styles.title}>Welcome back</Text>
+          <Text style={styles.subtitle}>Sign in to your account</Text>
+
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your email"
+            placeholderTextColor="#999"
+            value={email}
+            onChangeText={setEmail}
+            autoCapitalize="none"
+            keyboardType="email-address"
+          />
+
+          <Text style={styles.label}>Password</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter your password"
+            placeholderTextColor="#999"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+          />
+
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Sign In</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.linkContainer}
+            onPress={() => navigation.navigate("Signup")}
+          >
+            <Text style={styles.linkText}>
+              Don't have an account? <Text style={styles.link}>Create one</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 24,
-    backgroundColor: "#fff",
+  container: { flex: 1, backgroundColor: "#0a0a0a" },
+  scroll: { flexGrow: 1, justifyContent: "center" },
+  logoContainer: {
+    alignItems: "center",
+    paddingTop: 60,
+    paddingBottom: 40,
   },
-  title: {
+  logo: {
+    width: 80,
+    height: 80,
+    marginBottom: 12,
+  },
+  appName: {
     fontSize: 28,
     fontWeight: "bold",
-    marginBottom: 32,
-    textAlign: "center",
+    color: "#fff",
+    letterSpacing: 1,
+  },
+  tagline: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 4,
+  },
+  form: {
+    backgroundColor: "#1a1a1a",
+    margin: 24,
+    borderRadius: 16,
+    padding: 24,
+  },
+  title: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 24,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#ccc",
+    marginBottom: 6,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
+    backgroundColor: "#2a2a2a",
+    borderRadius: 10,
+    padding: 14,
+    color: "#fff",
     marginBottom: 16,
-    color: "#000",
+    fontSize: 15,
+    borderWidth: 1,
+    borderColor: "#333",
   },
   button: {
-    backgroundColor: "#000",
+    backgroundColor: "#cc0000",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 10,
     alignItems: "center",
-    marginBottom: 16,
+    marginTop: 8,
   },
-  buttonText: { color: "#fff", fontWeight: "bold" },
-  link: { textAlign: "center", color: "#666" },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  linkContainer: {
+    alignItems: "center",
+    marginTop: 20,
+  },
+  linkText: {
+    color: "#666",
+    fontSize: 14,
+  },
+  link: {
+    color: "#cc0000",
+    fontWeight: "bold",
+  },
 });
